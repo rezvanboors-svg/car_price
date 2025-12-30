@@ -68,18 +68,30 @@ def run_bot():
         for row in rows:
             cols = row.find_elements(By.TAG_NAME, "td")
             # اگر ردیف دارای ستون‌های کافی بود (نام، مدل، قیمت)
-            if len(cols) >= 3:
-                name = cols[0].text.strip()
-                model = cols[1].text.strip()
-                price = cols[2].text.strip()
+# === شروع کد اصلاح شده ===
+        for row in rows:
+            cols = row.find_elements(By.TAG_NAME, "td")
+            
+            # تغییر مهم: قبلا فکر می‌کردیم ۳ ستون دارد، اما احتمالا ۴ یا ۵ ستون دارد
+            # ما اعداد داخل براکت [] را تغییر دادیم تا ستون درست را بردارد
+            if len(cols) >= 4:  
+                # ستون شماره 1 احتمالا نام برند است (بنز)
+                name = cols[1].text.strip() 
+                
+                # ستون شماره 2 احتمالا مدل است (EQA)
+                model = cols[2].text.strip()
+                
+                # ستون شماره 3 احتمالا قیمت است
+                price = cols[3].text.strip()
 
-                # اگر قیمت خالی نبود، اضافه کن
+                # اگر قیمت خالی نبود و خط تیره نبود، ذخیره کن
                 if price and price != "-":
                     cars_data.append({
                         "name": name,
                         "model": model,
                         "price": price
                     })
+        # === پایان کد اصلاح شده ===
 
         # 4. ذخیره فایل
         if len(cars_data) > 0:
