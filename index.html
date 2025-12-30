@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قیمت روز خودرو</title>
+    <style>
+        body { font-family: 'Tahoma', sans-serif; background-color: #f0f2f5; padding: 20px; text-align: center; }
+        .card { background: white; max-width: 400px; margin: 0 auto; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; margin-bottom: 20px; }
+        select { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #e0e0e0; border-radius: 8px; font-family: 'Tahoma'; font-size: 16px; outline: none; }
+        select:focus { border-color: #3498db; }
+        .price-box { margin-top: 20px; padding: 15px; background: #e8f6f3; border-radius: 10px; color: #16a085; font-size: 20px; font-weight: bold; display: none; border: 1px solid #a3e4d7; }
+        .footer { margin-top: 20px; font-size: 12px; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🚗 استعلام قیمت خودرو</h2>
+    <p>برند و مدل خودرو را انتخاب کنید:</p>
+    
+    <select id="brandSelect" onchange="loadModels()">
+        <option value="">انتخاب برند...</option>
+    </select>
+    
+    <select id="modelSelect" onchange="showPrice()" disabled>
+        <option value="">ابتدا برند را انتخاب کنید</option>
+    </select>
+    
+    <div id="priceResult" class="price-box"></div>
+    
+    <div class="footer">بروزرسانی شده توسط ربات کانال</div>
+</div>
+
+<script>
+    let allCars = [];
+
+    // خواندن فایل json که پایتون ساخته است
+    fetch('cars.json')
+        .then(response => {
+            if (!response.ok) { throw new Error("فایل پیدا نشد"); }
+            return response.json();
+        })
+        .then(data => {
+            allCars = data;
+            loadBrands();
+        })
+        .catch(error => {
+            document.getElementById("priceResult").style.display = "block";
+            document.getElementById("priceResult").style.color = "red";
+            document.getElementById("priceResult").innerHTML = "⚠️ فایل قیمت‌ها (cars.json) پیدا نشد!<br>ابتدا ربات پایتون را اجرا کنید.";
+        });
+
+    function loadBrands() {
+        const brands = [...new Set(allCars.map(car => car.name))];
+        const select = document.getElementById("brandSelect");
+        brands.forEach(brand => {
+            let option = document.createElement("option");
+            option.value = brand;
+            option.text = brand;
+            select.add(option);
+        });
+    }
+
+    function loadModels() {
+        const selectedBrand = document.getElementById("brandSelect").value;
+        const modelSelect = document.getElementById("modelSelect");
+        modelSelect.innerHTML = '<option value="">انتخاب مدل...</option>';
+        
+        if (selectedBrand) {
+            modelSelect.disabled = false;
+            const models = allCars.filter(car => car.name === selectedBrand);
+            models.forEach(car => {
+                let option = document.createElement("option");
+                option.value = car.price;
+                option.text = car.model;
+                modelSelect.add(option);
+            });
+        } else {
+            modelSelect.disabled = true;
+            document.getElementById("priceResult").style.display = "none";
+        }
+    }
+
+    function showPrice() {
+        const price = document.getElementById("modelSelect").value;
+        const resultDiv = document.getElementById("priceResult");
+        if (price) {
+            resultDiv.style.display = "block";
+            resultDiv.innerHTML = `💰 قیمت: ${price} تومان`;
+        } else {
+            resultDiv.style.display = "none";
+        }
+    }
+</script>
+
+</body>
+</html>
