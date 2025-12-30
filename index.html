@@ -3,94 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قیمت روز خودرو</title>
+    <title>لیست قیمت خودرو</title>
     <style>
-        body { font-family: 'Tahoma', sans-serif; background-color: #f0f2f5; padding: 20px; text-align: center; }
-        .card { background: white; max-width: 400px; margin: 0 auto; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2 { color: #2c3e50; margin-bottom: 20px; }
-        select { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #e0e0e0; border-radius: 8px; font-family: 'Tahoma'; font-size: 16px; outline: none; }
-        select:focus { border-color: #3498db; }
-        .price-box { margin-top: 20px; padding: 15px; background: #e8f6f3; border-radius: 10px; color: #16a085; font-size: 20px; font-weight: bold; display: none; border: 1px solid #a3e4d7; }
-        .footer { margin-top: 20px; font-size: 12px; color: #888; }
+        body {
+            font-family: 'Tahoma', sans-serif;
+            background-color: #f4f6f8;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        label {
+            font-weight: bold;
+            color: #555;
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Tahoma';
+            font-size: 15px;
+            background-color: #fff;
+            transition: 0.3s;
+        }
+        select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        /* استایل جدول نتایج */
+        .result-table {
+            width: 100%;
+            margin-top: 25px;
+            border-collapse: collapse;
+            display: none; /* در ابتدا مخفی */
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .result-table th {
+            background-color: #34495e;
+            color: white;
+            padding: 10px;
+            font-size: 13px;
+        }
+        .result-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+        }
+        .result-table tr:last-child td {
+            border-bottom: none;
+        }
+        .result-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .price-tag {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .empty-msg {
+            text-align: center;
+            color: #e74c3c;
+            margin-top: 20px;
+            display: none;
+        }
+        .footer {
+            text-align: center;
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 30px;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>🚗 استعلام قیمت خودرو</h2>
-    <p>برند و مدل خودرو را انتخاب کنید:</p>
+<div class="container">
+    <h2>🚘 استعلام دقیق قیمت</h2>
     
+    <label>۱. انتخاب برند (کارخانه):</label>
     <select id="brandSelect" onchange="loadModels()">
-        <option value="">انتخاب برند...</option>
+        <option value="">لطفا انتخاب کنید...</option>
     </select>
     
-    <select id="modelSelect" onchange="showPrice()" disabled>
+    <label>۲. انتخاب مدل خودرو:</label>
+    <select id="modelSelect" onchange="showTable()" disabled>
         <option value="">ابتدا برند را انتخاب کنید</option>
     </select>
     
-    <div id="priceResult" class="price-box"></div>
-    
-    <div class="footer">بروزرسانی شده توسط ربات کانال</div>
+    <div id="errorMsg" class="empty-msg">اطلاعاتی یافت نشد.</div>
+
+    <table id="priceTable" class="result-table">
+        <thead>
+            <tr>
+                <th>تیپ (Trim)</th>
+                <th>سال</th>
+                <th>قیمت (تومان)</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            </tbody>
+    </table>
+
+    <div class="footer">بروزرسانی شده توسط ربات هوشمند</div>
 </div>
 
 <script>
     let allCars = [];
 
-    // خواندن فایل json که پایتون ساخته است
+    // بارگذاری اطلاعات
     fetch('cars.json')
         .then(response => {
-            if (!response.ok) { throw new Error("فایل پیدا نشد"); }
+            if (!response.ok) throw new Error();
             return response.json();
         })
         .then(data => {
             allCars = data;
-            loadBrands();
+            populateBrands();
         })
-        .catch(error => {
-            document.getElementById("priceResult").style.display = "block";
-            document.getElementById("priceResult").style.color = "red";
-            document.getElementById("priceResult").innerHTML = "⚠️ فایل قیمت‌ها (cars.json) پیدا نشد!<br>ابتدا ربات پایتون را اجرا کنید.";
+        .catch(err => {
+            document.getElementById("errorMsg").style.display = "block";
+            document.getElementById("errorMsg").innerHTML = "⚠️ فایل cars.json پیدا نشد.<br>ابتدا ربات را اجرا کنید.";
         });
 
-    function loadBrands() {
-        const brands = [...new Set(allCars.map(car => car.name))];
-        const select = document.getElementById("brandSelect");
+    // 1. پر کردن لیست برندها
+    function populateBrands() {
+        const brandSelect = document.getElementById("brandSelect");
+        // استخراج نام برندها و حذف تکراری‌ها
+        const brands = [...new Set(allCars.map(car => car.brand))].sort();
+        
         brands.forEach(brand => {
             let option = document.createElement("option");
             option.value = brand;
             option.text = brand;
-            select.add(option);
+            brandSelect.add(option);
         });
     }
 
+    // 2. پر کردن لیست مدل‌ها بر اساس برند انتخاب شده
     function loadModels() {
         const selectedBrand = document.getElementById("brandSelect").value;
         const modelSelect = document.getElementById("modelSelect");
+        const table = document.getElementById("priceTable");
+        
+        // ریست کردن
         modelSelect.innerHTML = '<option value="">انتخاب مدل...</option>';
+        table.style.display = "none";
         
         if (selectedBrand) {
             modelSelect.disabled = false;
-            const models = allCars.filter(car => car.name === selectedBrand);
-            models.forEach(car => {
+            
+            // پیدا کردن تمام مدل‌های مربوط به این برند
+            const brandCars = allCars.filter(car => car.brand === selectedBrand);
+            const models = [...new Set(brandCars.map(car => car.model))].sort();
+
+            models.forEach(model => {
                 let option = document.createElement("option");
-                option.value = car.price;
-                option.text = car.model;
+                option.value = model;
+                option.text = model;
                 modelSelect.add(option);
             });
         } else {
             modelSelect.disabled = true;
-            document.getElementById("priceResult").style.display = "none";
         }
     }
 
-    function showPrice() {
-        const price = document.getElementById("modelSelect").value;
-        const resultDiv = document.getElementById("priceResult");
-        if (price) {
-            resultDiv.style.display = "block";
-            resultDiv.innerHTML = `💰 قیمت: ${price} تومان`;
+    // 3. نمایش جدول نهایی
+    function showTable() {
+        const selectedBrand = document.getElementById("brandSelect").value;
+        const selectedModel = document.getElementById("modelSelect").value;
+        const table = document.getElementById("priceTable");
+        const tbody = document.getElementById("tableBody");
+        
+        tbody.innerHTML = ""; // پاک کردن جدول قبلی
+
+        if (selectedModel) {
+            // پیدا کردن تمام ماشین‌هایی که برند و مدلشان یکی است
+            // (ممکن است تریم‌ها یا سال‌های مختلف داشته باشند)
+            const results = allCars.filter(car => 
+                car.brand === selectedBrand && car.model === selectedModel
+            );
+
+            // مرتب‌سازی بر اساس سال (جدیدترین بالا)
+            results.sort((a, b) => b.year.localeCompare(a.year));
+
+            results.forEach(car => {
+                let row = `<tr>
+                    <td>${car.trim}</td>
+                    <td>${car.year}</td>
+                    <td class="price-tag">${car.price}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+
+            table.style.display = "table"; // نمایش جدول
         } else {
-            resultDiv.style.display = "none";
+            table.style.display = "none";
         }
     }
 </script>
