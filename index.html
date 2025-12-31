@@ -3,223 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لیست قیمت خودرو</title>
+    <title>استعلام قیمت خودرو + دیوار</title>
     <style>
-        body {
-            font-family: 'Tahoma', sans-serif;
-            background-color: #f4f6f8;
-            padding: 20px;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-        }
-        .container {
-            background: white;
-            width: 100%;
-            max-width: 500px;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        }
-        h2 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 25px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
-        label {
-            font-weight: bold;
-            color: #555;
-            display: block;
-            margin-top: 15px;
-            margin-bottom: 5px;
-        }
-        select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-family: 'Tahoma';
-            font-size: 15px;
-            background-color: #fff;
-            transition: 0.3s;
-        }
-        select:focus {
-            border-color: #3498db;
-            outline: none;
-        }
+        body { font-family: 'Tahoma', sans-serif; background: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
+        .app-container { background: white; width: 100%; max-width: 550px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         
-        /* استایل جدول نتایج */
-        .result-table {
-            width: 100%;
-            margin-top: 25px;
-            border-collapse: collapse;
-            display: none; /* در ابتدا مخفی */
-            overflow: hidden;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .result-table th {
-            background-color: #34495e;
+        label { font-weight: bold; display: block; margin-top: 15px; color: #555; font-size: 14px; }
+        select { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: 'Tahoma'; font-size: 15px; outline: none; transition: 0.3s; }
+        select:focus { border-color: #3498db; }
+        select:disabled { background: #f9f9f9; cursor: not-allowed; }
+
+        /* استایل جدول */
+        table { width: 100%; margin-top: 25px; border-collapse: collapse; display: none; overflow: hidden; border-radius: 8px; }
+        th { background: #34495e; color: white; padding: 10px; font-size: 13px; }
+        td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; font-size: 14px; vertical-align: middle; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        
+        .price-text { color: #27ae60; font-weight: bold; }
+        .trim-text { font-size: 12px; color: #7f8c8d; }
+        
+        /* دکمه دیوار */
+        .divar-btn {
+            background-color: #a62626; /* رنگ برند دیوار */
             color: white;
-            padding: 10px;
-            font-size: 13px;
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 12px;
+            display: inline-block;
+            transition: 0.2s;
         }
-        .result-table td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-            font-size: 14px;
-            color: #333;
-        }
-        .result-table tr:last-child td {
-            border-bottom: none;
-        }
-        .result-table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .price-tag {
-            color: #27ae60;
-            font-weight: bold;
-        }
-        .empty-msg {
-            text-align: center;
-            color: #e74c3c;
-            margin-top: 20px;
-            display: none;
-        }
-        .footer {
-            text-align: center;
-            font-size: 11px;
-            color: #aaa;
-            margin-top: 30px;
-        }
+        .divar-btn:hover { background-color: #851e1e; }
+        
+        .error-msg { color: #e74c3c; text-align: center; display: none; margin-top: 15px; background: #fadbd8; padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🚘 استعلام دقیق قیمت</h2>
+<div class="app-container">
+    <h2>🚘 قیمت روز خودرو</h2>
     
-    <label>۱. انتخاب برند (کارخانه):</label>
+    <label>۱. برند خودرو را انتخاب کنید:</label>
     <select id="brandSelect" onchange="loadModels()">
-        <option value="">لطفا انتخاب کنید...</option>
+        <option value="">در حال بارگذاری...</option>
     </select>
-    
-    <label>۲. انتخاب مدل خودرو:</label>
-    <select id="modelSelect" onchange="showTable()" disabled>
+
+    <label>۲. مدل خودرو را انتخاب کنید:</label>
+    <select id="modelSelect" onchange="renderTable()" disabled>
         <option value="">ابتدا برند را انتخاب کنید</option>
     </select>
-    
-    <div id="errorMsg" class="empty-msg">اطلاعاتی یافت نشد.</div>
 
-    <table id="priceTable" class="result-table">
+    <div id="errorBox" class="error-msg"></div>
+
+    <table id="resultTable">
         <thead>
             <tr>
-                <th>تیپ (Trim)</th>
-                <th>سال</th>
+                <th>مشخصات (تیپ/سال)</th>
                 <th>قیمت (تومان)</th>
+                <th>دیوار</th>
             </tr>
         </thead>
-        <tbody id="tableBody">
-            </tbody>
+        <tbody id="tableBody"></tbody>
     </table>
-
-    <div class="footer">بروزرسانی شده توسط ربات هوشمند</div>
 </div>
 
 <script>
-    let allCars = [];
+    let carData = [];
 
-    // بارگذاری اطلاعات
+    // بارگذاری فایل اطلاعات
     fetch('cars.json')
         .then(response => {
-            if (!response.ok) throw new Error();
+            if (!response.ok) throw new Error("فایل پیدا نشد");
             return response.json();
         })
         .then(data => {
-            allCars = data;
-            populateBrands();
+            carData = data;
+            initBrands();
         })
         .catch(err => {
-            document.getElementById("errorMsg").style.display = "block";
-            document.getElementById("errorMsg").innerHTML = "⚠️ فایل cars.json پیدا نشد.<br>ابتدا ربات را اجرا کنید.";
+            const errBox = document.getElementById("errorBox");
+            errBox.style.display = "block";
+            errBox.innerHTML = "⚠️ فایل <b>cars.json</b> یافت نشد.<br>لطفاً ابتدا ربات پایتون را اجرا کنید.";
+            document.getElementById("brandSelect").innerHTML = '<option>خطا در بارگذاری</option>';
         });
 
-    // 1. پر کردن لیست برندها
-    function populateBrands() {
-        const brandSelect = document.getElementById("brandSelect");
-        // استخراج نام برندها و حذف تکراری‌ها
-        const brands = [...new Set(allCars.map(car => car.brand))].sort();
+    function initBrands() {
+        const brands = [...new Set(carData.map(c => c.brand))].sort();
+        const select = document.getElementById("brandSelect");
+        select.innerHTML = '<option value="">انتخاب کنید...</option>';
         
         brands.forEach(brand => {
-            let option = document.createElement("option");
-            option.value = brand;
-            option.text = brand;
-            brandSelect.add(option);
+            let opt = document.createElement("option");
+            opt.value = brand;
+            opt.text = brand;
+            select.add(opt);
         });
     }
 
-    // 2. پر کردن لیست مدل‌ها بر اساس برند انتخاب شده
     function loadModels() {
         const selectedBrand = document.getElementById("brandSelect").value;
         const modelSelect = document.getElementById("modelSelect");
-        const table = document.getElementById("priceTable");
+        const table = document.getElementById("resultTable");
         
-        // ریست کردن
         modelSelect.innerHTML = '<option value="">انتخاب مدل...</option>';
         table.style.display = "none";
         
         if (selectedBrand) {
             modelSelect.disabled = false;
+            // فیلتر مدل‌های مربوط به برند انتخاب شده
+            const models = [...new Set(carData.filter(c => c.brand === selectedBrand).map(c => c.model))].sort();
             
-            // پیدا کردن تمام مدل‌های مربوط به این برند
-            const brandCars = allCars.filter(car => car.brand === selectedBrand);
-            const models = [...new Set(brandCars.map(car => car.model))].sort();
-
             models.forEach(model => {
-                let option = document.createElement("option");
-                option.value = model;
-                option.text = model;
-                modelSelect.add(option);
+                let opt = document.createElement("option");
+                opt.value = model;
+                opt.text = model;
+                modelSelect.add(opt);
             });
         } else {
             modelSelect.disabled = true;
         }
     }
 
-    // 3. نمایش جدول نهایی
-    function showTable() {
-        const selectedBrand = document.getElementById("brandSelect").value;
-        const selectedModel = document.getElementById("modelSelect").value;
-        const table = document.getElementById("priceTable");
+    function renderTable() {
+        const brand = document.getElementById("brandSelect").value;
+        const model = document.getElementById("modelSelect").value;
         const tbody = document.getElementById("tableBody");
+        const table = document.getElementById("resultTable");
         
-        tbody.innerHTML = ""; // پاک کردن جدول قبلی
+        tbody.innerHTML = "";
 
-        if (selectedModel) {
-            // پیدا کردن تمام ماشین‌هایی که برند و مدلشان یکی است
-            // (ممکن است تریم‌ها یا سال‌های مختلف داشته باشند)
-            const results = allCars.filter(car => 
-                car.brand === selectedBrand && car.model === selectedModel
-            );
-
-            // مرتب‌سازی بر اساس سال (جدیدترین بالا)
+        if (model && brand) {
+            const results = carData.filter(c => c.brand === brand && c.model === model);
+            // مرتب‌سازی بر اساس سال (نزولی)
             results.sort((a, b) => b.year.localeCompare(a.year));
 
             results.forEach(car => {
-                let row = `<tr>
-                    <td>${car.trim}</td>
-                    <td>${car.year}</td>
-                    <td class="price-tag">${car.price}</td>
-                </tr>`;
+                // ساخت لینک جستجو در دیوار
+                // مثال: https://divar.ir/s/iran/auto?q=بنز c200
+                const query = `${car.brand} ${car.model}`;
+                const divarLink = `https://divar.ir/s/iran/auto?q=${encodeURIComponent(query)}`;
+
+                let row = `
+                <tr>
+                    <td>
+                        <div style="font-weight:bold;">${car.trim}</div>
+                        <div class="trim-text">سال: ${car.year}</div>
+                    </td>
+                    <td class="price-text">${car.price}</td>
+                    <td>
+                        <a href="${divarLink}" target="_blank" class="divar-btn">
+                            🔍 جستجو
+                        </a>
+                    </td>
+                </tr>
+                `;
                 tbody.innerHTML += row;
             });
-
-            table.style.display = "table"; // نمایش جدول
-        } else {
-            table.style.display = "none";
+            table.style.display = "table";
         }
     }
 </script>
