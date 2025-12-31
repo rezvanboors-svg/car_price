@@ -3,71 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لیست قیمت خودرو + توضیحات</title>
+    <title>استعلام قیمت خودرو | نسخه حرفه‌ای</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    
     <style>
-        body { font-family: 'Tahoma', sans-serif; background: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
-        .app-container { background: white; width: 100%; max-width: 800px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        
-        label { font-weight: bold; display: block; margin-top: 15px; color: #555; font-size: 14px; }
-        select { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: 'Tahoma'; font-size: 15px; outline: none; transition: 0.3s; }
-        select:focus { border-color: #3498db; }
-        
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #f72585;
+            --bg-gradient: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            background: var(--glass-bg);
+            width: 100%;
+            max-width: 900px;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-weight: 900;
+            font-size: 24px;
+            border-bottom: 2px dashed #ddd;
+            padding-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #444;
+            font-size: 14px;
+        }
+
+        select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: 'Vazirmatn', sans-serif;
+            font-size: 16px;
+            background-color: #fff;
+            transition: 0.3s;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: left 15px top 50%;
+            background-size: 12px auto;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
+        }
+
+        select:disabled {
+            background-color: #f2f2f2;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
         /* استایل جدول */
-        table { width: 100%; margin-top: 25px; border-collapse: collapse; display: none; overflow: hidden; border-radius: 8px; }
-        th { background: #34495e; color: white; padding: 10px; font-size: 13px; white-space: nowrap; }
-        td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; font-size: 13px; vertical-align: middle; }
-        tr:nth-child(even) { background-color: #f8f9fa; }
+        .table-wrapper {
+            margin-top: 30px;
+            overflow-x: auto; /* برای موبایل */
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            display: none; /* پیش فرض مخفی */
+            background: white;
+            overflow: hidden;
+        }
+
+        thead {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fc;
+        }
+
+        tr:hover {
+            background-color: #f1f4ff;
+            transition: 0.2s;
+        }
+
+        /* انیمیشن ظاهر شدن */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .show-table {
+            display: table;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* استایل قیمت */
+        .price-badge {
+            background-color: #e3f9e5;
+            color: #1b5e20;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+
+        /* استایل توضیحات */
+        .desc-text {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+            max-width: 250px;
+            margin: 0 auto;
+        }
         
-        .price-text { color: #27ae60; font-weight: bold; font-size: 14px; white-space: nowrap; }
-        .trim-text { font-weight: bold; color: #333; }
-        .year-text { font-size: 12px; color: #7f8c8d; }
-        .desc-text { font-size: 11px; color: #666; max-width: 200px; line-height: 1.4; }
-        
+        .empty-desc {
+            color: #ccc;
+            font-style: italic;
+        }
+
         /* دکمه دیوار */
         .divar-btn {
-            background-color: #a62626; color: white; padding: 6px 10px; 
-            text-decoration: none; border-radius: 5px; font-size: 12px; 
-            display: inline-block; white-space: nowrap;
+            background: linear-gradient(45deg, #a62626, #d63031);
+            color: white;
+            padding: 8px 15px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 12px;
+            display: inline-block;
+            box-shadow: 0 4px 6px rgba(166, 38, 38, 0.2);
+            transition: all 0.2s;
+            white-space: nowrap;
         }
-        .divar-btn:hover { background-color: #851e1e; }
-        
-        .error-msg { color: #e74c3c; text-align: center; display: none; margin-top: 15px; background: #fadbd8; padding: 10px; border-radius: 5px; }
+
+        .divar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(166, 38, 38, 0.3);
+        }
+
+        /* پیام خطا */
+        .error-box {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+            margin-top: 20px;
+            border: 1px solid #ef9a9a;
+        }
+
+        /* فوتر */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #888;
+        }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <h2>🚘 قیمت روز خودرو</h2>
+<div class="container">
+    <h2>🚘 استعلام آنلاین قیمت خودرو</h2>
     
-    <label>۱. برند خودرو را انتخاب کنید:</label>
-    <select id="brandSelect" onchange="loadModels()">
-        <option value="">در حال بارگذاری...</option>
-    </select>
+    <div class="form-group">
+        <label for="brandSelect">۱. انتخاب برند (کارخانه):</label>
+        <select id="brandSelect" onchange="loadModels()">
+            <option value="">درحال بارگذاری اطلاعات...</option>
+        </select>
+    </div>
 
-    <label>۲. مدل خودرو را انتخاب کنید:</label>
-    <select id="modelSelect" onchange="renderTable()" disabled>
-        <option value="">ابتدا برند را انتخاب کنید</option>
-    </select>
+    <div class="form-group">
+        <label for="modelSelect">۲. انتخاب مدل خودرو:</label>
+        <select id="modelSelect" onchange="renderTable()" disabled>
+            <option value="">ابتدا برند را انتخاب کنید</option>
+        </select>
+    </div>
 
-    <div id="errorBox" class="error-msg"></div>
+    <div id="errorBox" class="error-box"></div>
 
-    <table id="resultTable">
-        <thead>
-            <tr>
-                <th>خودرو (تیپ/سال)</th>
-                <th>توضیحات</th> <th>قیمت (تومان)</th>
-                <th>خرید</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+    <div class="table-wrapper">
+        <table id="resultTable">
+            <thead>
+                <tr>
+                    <th>مشخصات خودرو</th>
+                    <th>توضیحات تکمیلی</th>
+                    <th>قیمت روز (تومان)</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        بروزرسانی شده توسط ربات هوشمند • طراحی اختصاصی
+    </div>
 </div>
 
 <script>
     let carData = [];
 
-    // بارگذاری فایل اطلاعات
+    // بارگذاری داده‌ها
     fetch('cars.json')
         .then(response => {
             if (!response.ok) throw new Error("فایل پیدا نشد");
@@ -80,15 +270,14 @@
         .catch(err => {
             const errBox = document.getElementById("errorBox");
             errBox.style.display = "block";
-            errBox.innerHTML = "⚠️ فایل <b>cars.json</b> یافت نشد.<br>لطفاً ابتدا ربات پایتون را اجرا کنید و سپس فایل json را کنار این فایل html قرار دهید.";
-            document.getElementById("brandSelect").innerHTML = '<option>خطا در بارگذاری</option>';
+            errBox.innerHTML = "❌ فایل <b>cars.json</b> پیدا نشد. لطفاً ربات را اجرا و فایل خروجی را آپلود کنید.";
+            document.getElementById("brandSelect").innerHTML = '<option>خطا در اتصال</option>';
         });
 
     function initBrands() {
-        // دریافت لیست برندها و حذف تکراری
         const brands = [...new Set(carData.map(c => c.brand))].sort();
         const select = document.getElementById("brandSelect");
-        select.innerHTML = '<option value="">انتخاب کنید...</option>';
+        select.innerHTML = '<option value="">لطفا یک برند را انتخاب کنید...</option>';
         
         brands.forEach(brand => {
             let opt = document.createElement("option");
@@ -104,11 +293,11 @@
         const table = document.getElementById("resultTable");
         
         modelSelect.innerHTML = '<option value="">انتخاب مدل...</option>';
-        table.style.display = "none";
-        
+        table.classList.remove("show-table"); // مخفی کردن جدول با انیمیشن معکوس
+        setTimeout(() => table.style.display = "none", 200);
+
         if (selectedBrand) {
             modelSelect.disabled = false;
-            // فیلتر مدل‌های مربوط به برند انتخاب شده
             const models = [...new Set(carData.filter(c => c.brand === selectedBrand).map(c => c.model))].sort();
             
             models.forEach(model => {
@@ -132,42 +321,42 @@
 
         if (model && brand) {
             const results = carData.filter(c => c.brand === brand && c.model === model);
-            // مرتب‌سازی بر اساس سال (نزولی)
             results.sort((a, b) => b.year.localeCompare(a.year));
 
             results.forEach(car => {
-                // --- تغییر ۱: جستجو فقط بر اساس نام خودرو (برند) ---
-                // قبلاً بود: const query = `${car.brand} ${car.model}`;
-                // الان فقط برند جستجو می‌شود (مثلاً "پراید" یا "بنز")
-                const query = car.brand; 
-                
+                // جستجوی فقط نام برند در دیوار
+                const query = car.brand;
                 const divarLink = `https://divar.ir/s/iran/auto?q=${encodeURIComponent(query)}`;
 
-                // مدیریت نمایش توضیحات (اگر خط تیره بود، خالی نشان بده که تمیزتر باشد)
+                // تمیزکاری توضیحات
                 let description = car.desc;
-                if (description === "-" || description === "") {
-                    description = "<span style='color:#ccc'>-</span>";
+                let descClass = "desc-text";
+                if (!description || description === "-" || description === "") {
+                    description = "---";
+                    descClass += " empty-desc";
                 }
 
                 let row = `
                 <tr>
                     <td>
-                        <div class="trim-text">${car.trim}</div>
-                        <div class="year-text">مدل: ${car.year}</div>
+                        <div style="font-weight:bold; font-size:15px; color:#333">${car.trim}</div>
+                        <div style="font-size:13px; color:#777; margin-top:4px">سال ساخت: ${car.year}</div>
                     </td>
-                    <td class="desc-text">${description}</td>
-                    
-                    <td class="price-text">${car.price}</td>
+                    <td class="${descClass}">${description}</td>
+                    <td><span class="price-badge">${car.price}</span></td>
                     <td>
                         <a href="${divarLink}" target="_blank" class="divar-btn">
-                            جستجو در دیوار
+                             جستجو در دیوار 🔍
                         </a>
                     </td>
                 </tr>
                 `;
                 tbody.innerHTML += row;
             });
+            
             table.style.display = "table";
+            // اضافه کردن کلاس انیمیشن با کمی تاخیر برای زیبایی
+            setTimeout(() => table.classList.add("show-table"), 50);
         }
     }
 </script>
