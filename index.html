@@ -3,36 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استعلام قیمت خودرو + دیوار</title>
+    <title>لیست قیمت خودرو + توضیحات</title>
     <style>
         body { font-family: 'Tahoma', sans-serif; background: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
-        .app-container { background: white; width: 100%; max-width: 550px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .app-container { background: white; width: 100%; max-width: 800px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         
         label { font-weight: bold; display: block; margin-top: 15px; color: #555; font-size: 14px; }
         select { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: 'Tahoma'; font-size: 15px; outline: none; transition: 0.3s; }
         select:focus { border-color: #3498db; }
-        select:disabled { background: #f9f9f9; cursor: not-allowed; }
-
+        
         /* استایل جدول */
         table { width: 100%; margin-top: 25px; border-collapse: collapse; display: none; overflow: hidden; border-radius: 8px; }
-        th { background: #34495e; color: white; padding: 10px; font-size: 13px; }
-        td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; font-size: 14px; vertical-align: middle; }
+        th { background: #34495e; color: white; padding: 10px; font-size: 13px; white-space: nowrap; }
+        td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; font-size: 13px; vertical-align: middle; }
         tr:nth-child(even) { background-color: #f8f9fa; }
         
-        .price-text { color: #27ae60; font-weight: bold; }
-        .trim-text { font-size: 12px; color: #7f8c8d; }
+        .price-text { color: #27ae60; font-weight: bold; font-size: 14px; white-space: nowrap; }
+        .trim-text { font-weight: bold; color: #333; }
+        .year-text { font-size: 12px; color: #7f8c8d; }
+        .desc-text { font-size: 11px; color: #666; max-width: 200px; line-height: 1.4; }
         
         /* دکمه دیوار */
         .divar-btn {
-            background-color: #a62626; /* رنگ برند دیوار */
-            color: white;
-            padding: 5px 10px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 12px;
-            display: inline-block;
-            transition: 0.2s;
+            background-color: #a62626; color: white; padding: 6px 10px; 
+            text-decoration: none; border-radius: 5px; font-size: 12px; 
+            display: inline-block; white-space: nowrap;
         }
         .divar-btn:hover { background-color: #851e1e; }
         
@@ -59,9 +55,9 @@
     <table id="resultTable">
         <thead>
             <tr>
-                <th>مشخصات (تیپ/سال)</th>
-                <th>قیمت (تومان)</th>
-                <th>دیوار</th>
+                <th>خودرو (تیپ/سال)</th>
+                <th>توضیحات</th> <th>قیمت (تومان)</th>
+                <th>خرید</th>
             </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -84,11 +80,12 @@
         .catch(err => {
             const errBox = document.getElementById("errorBox");
             errBox.style.display = "block";
-            errBox.innerHTML = "⚠️ فایل <b>cars.json</b> یافت نشد.<br>لطفاً ابتدا ربات پایتون را اجرا کنید.";
+            errBox.innerHTML = "⚠️ فایل <b>cars.json</b> یافت نشد.<br>لطفاً ابتدا ربات پایتون را اجرا کنید و سپس فایل json را کنار این فایل html قرار دهید.";
             document.getElementById("brandSelect").innerHTML = '<option>خطا در بارگذاری</option>';
         });
 
     function initBrands() {
+        // دریافت لیست برندها و حذف تکراری
         const brands = [...new Set(carData.map(c => c.brand))].sort();
         const select = document.getElementById("brandSelect");
         select.innerHTML = '<option value="">انتخاب کنید...</option>';
@@ -139,21 +136,31 @@
             results.sort((a, b) => b.year.localeCompare(a.year));
 
             results.forEach(car => {
-                // ساخت لینک جستجو در دیوار
-                // مثال: https://divar.ir/s/iran/auto?q=بنز c200
-                const query = `${car.brand} ${car.model}`;
+                // --- تغییر ۱: جستجو فقط بر اساس نام خودرو (برند) ---
+                // قبلاً بود: const query = `${car.brand} ${car.model}`;
+                // الان فقط برند جستجو می‌شود (مثلاً "پراید" یا "بنز")
+                const query = car.brand; 
+                
                 const divarLink = `https://divar.ir/s/iran/auto?q=${encodeURIComponent(query)}`;
+
+                // مدیریت نمایش توضیحات (اگر خط تیره بود، خالی نشان بده که تمیزتر باشد)
+                let description = car.desc;
+                if (description === "-" || description === "") {
+                    description = "<span style='color:#ccc'>-</span>";
+                }
 
                 let row = `
                 <tr>
                     <td>
-                        <div style="font-weight:bold;">${car.trim}</div>
-                        <div class="trim-text">سال: ${car.year}</div>
+                        <div class="trim-text">${car.trim}</div>
+                        <div class="year-text">مدل: ${car.year}</div>
                     </td>
+                    <td class="desc-text">${description}</td>
+                    
                     <td class="price-text">${car.price}</td>
                     <td>
                         <a href="${divarLink}" target="_blank" class="divar-btn">
-                            🔍 جستجو
+                            جستجو در دیوار
                         </a>
                     </td>
                 </tr>
